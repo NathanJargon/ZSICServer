@@ -10,14 +10,17 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def home():
+    app.logger.info('GET request received at /')
     return "Welcome to my application!", 200
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        app.logger.info('POST request received at /predict')
         zsic = ZeroShotImageClassification()
         image_url = request.form.get('image_url')
         if not image_url:
+            app.logger.error('No image URL provided')
             return jsonify({'error': 'No image URL provided'}), 400
         response = requests.get(image_url)
         image = Image.open(BytesIO(response.content))
@@ -26,7 +29,7 @@ def predict():
         # Ensure the preds dictionary is JSON-serializable
         preds = {k: str(v) for k, v in preds.items()}
         response = jsonify(preds)
-        print(response.get_data(as_text=True))
+        app.logger.info(f'Response data: {response.get_data(as_text=True)}')
         return response
     except Exception as e:
         app.logger.error(f"Exception occurred: {type(e).__name__}, {str(e)}")
